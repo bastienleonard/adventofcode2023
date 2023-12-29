@@ -1,8 +1,23 @@
 use std::io::BufRead;
 
+#[derive(Copy, Clone, Debug)]
+enum Card {
+    Value(u32),
+    Joker
+}
+
+impl Card {
+    fn require_value(self) -> u32 {
+        match self {
+            Self::Value(n) => n,
+            Self::Joker => panic!("called require_value() on joker")
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Bid {
-    cards: Vec<u32>,
+    cards: Vec<Card>,
     bid: u32
 }
 
@@ -40,15 +55,15 @@ fn parse(lines: &[impl AsRef<str>]) -> Vec<Bid> {
 fn parse_line(line: &str) -> Bid {
     let segments: Vec<_> = line.split_ascii_whitespace().collect();
     assert_eq!(segments.len(), 2);
-    let cards: Vec<u32> = segments[0].chars()
-        .map(parse_card_value)
+    let cards: Vec<Card> = segments[0].chars()
+        .map(parse_card)
         .collect();
     let bid = segments[1].parse::<u32>().unwrap();
     Bid { cards, bid }
 }
 
-fn parse_card_value(c: char) -> u32 {
-    if let Some(n) = c.to_digit(10) {
+fn parse_card(c: char) -> Card {
+    let value = if let Some(n) = c.to_digit(10) {
         n
     } else {
         match c {
@@ -61,7 +76,9 @@ fn parse_card_value(c: char) -> u32 {
                 unreachable!("Unknown card {}", c);
             }
         }
-    }
+    };
+
+    Card::Value(value)
 }
 
 fn winnings(bids: &mut [Bid]) -> u32 {
@@ -73,7 +90,7 @@ fn winnings(bids: &mut [Bid]) -> u32 {
         .sum()
 }
 
-fn compare_hands(a: &[u32], b: &[u32]) -> std::cmp::Ordering {
+fn compare_hands(a: &[Card], b: &[Card]) -> std::cmp::Ordering {
     let hand_a = hand_type(a) as u8;
     let hand_b = hand_type(b) as u8;
 
@@ -83,18 +100,28 @@ fn compare_hands(a: &[u32], b: &[u32]) -> std::cmp::Ordering {
     } else if hand_a > hand_b {
         std::cmp::Ordering::Greater
     } else {
-        a.cmp(b)
+        // TODO: performance
+        a.iter()
+            .map(|card| card.require_value())
+            .collect::<Vec<u32>>()
+            .cmp(
+                &b.iter()
+                    .map(|card| card.require_value())
+                    .collect::<Vec<u32>>()
+            )
     }
 }
 
-fn hand_type(cards: &[u32]) -> HandType {
+fn hand_type(cards: &[Card]) -> HandType {
     let mut occurrences = std::collections::HashMap::<u32, u8>::new();
 
     for &card in cards {
-        if let Some(n) = occurrences.get(&card) {
-            occurrences.insert(card, n + 1);
+        let key = card.require_value();
+
+        if let Some(n) = occurrences.get(&key) {
+            occurrences.insert(key, n + 1);
         } else {
-            occurrences.insert(card, 1);
+            occurrences.insert(key, 1);
         }
     }
 
