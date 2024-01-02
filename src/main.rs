@@ -21,5 +21,6 @@ fn main() {
     // assert_eq!(day6::part1(), 170000);
     // assert_eq!(day6::part2(), 20537782);
     assert_eq!(day7::part1(), 251806792);
+    assert_eq!(day7::part2(), 252113488);
     assert_eq!(day7_part2::part2(), 252113488);
 }
