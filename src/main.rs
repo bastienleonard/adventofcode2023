@@ -6,6 +6,7 @@ pub mod day5;
 pub mod day6;
 pub mod day7_part1;
 pub mod day7_part2;
+pub mod day8;
 
 fn main() {
     assert_eq!(day1::part1(), 54605);
@@ -22,4 +23,5 @@ fn main() {
     assert_eq!(day6::part2(), 20537782);
     assert_eq!(day7_part1::part1(), 251806792);
     assert_eq!(day7_part2::part2(), 252113488);
+    assert_eq!(day8::part1(), 13207);
 }
